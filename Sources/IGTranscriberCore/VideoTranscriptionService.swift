@@ -2,7 +2,7 @@ import Foundation
 @preconcurrency import AVFoundation
 import Speech
 
-enum VideoTranscriptionError: LocalizedError {
+public enum VideoTranscriptionError: LocalizedError {
     case speechPermissionDenied
     case noAudioTrack
     case failedToCreateExporter
@@ -10,7 +10,7 @@ enum VideoTranscriptionError: LocalizedError {
     case recognizerUnavailable
     case emptyTranscript
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .speechPermissionDenied:
             return "Speech Recognition permission was denied. Enable it in System Settings > Privacy & Security > Speech Recognition."
@@ -29,8 +29,10 @@ enum VideoTranscriptionError: LocalizedError {
 }
 
 @MainActor
-final class VideoTranscriptionService {
-    func transcribeVideo(
+public final class VideoTranscriptionService {
+    public init() {}
+    
+    public func transcribeVideo(
         at videoURL: URL,
         progress: @escaping @Sendable (String) -> Void
     ) async throws -> String {

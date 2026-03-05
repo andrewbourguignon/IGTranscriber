@@ -1,6 +1,6 @@
 import Foundation
 
-enum VideoDownloadError: LocalizedError {
+public enum VideoDownloadError: LocalizedError {
     case invalidURL
     case ytDlpNotFound
     case ytDlpFailed(String)
@@ -8,7 +8,7 @@ enum VideoDownloadError: LocalizedError {
     case unsupportedURL
     case httpError(statusCode: Int)
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .invalidURL:
             return "The link is not a valid URL."
@@ -29,72 +29,33 @@ enum VideoDownloadError: LocalizedError {
     }
 }
 
-struct DownloadedVideo {
-    let fileURL: URL
-    let temporaryDirectoryURL: URL
+public struct DownloadedVideo {
+    public let fileURL: URL
+    public let temporaryDirectoryURL: URL
+    public let videoTitle: String?
 }
 
 @MainActor
-final class VideoDownloadService {
-    func downloadVideo(
+public final class VideoDownloadService {
+    public init() {}
+    
+    public func downloadVideo(
         from sourceURL: URL,
         progress: @escaping @Sendable (String) -> Void
     ) async throws -> DownloadedVideo {
-        guard let scheme = sourceURL.scheme?.lowercased(),
-              ["http", "https"].contains(scheme) else {
+        guard let scheme = sourceURL.scheme?.lowercased() else {
             throw VideoDownloadError.invalidURL
         }
 
-        if isInstagramLink(sourceURL) {
-            progress("Downloading Instagram link with yt-dlp...")
-            return try await downloadInstagramVideo(from: sourceURL)
-        }
-
-        if looksLikeDirectVideoURL(sourceURL) {
-            progress("Downloading video URL...")
-            return try await downloadDirectVideo(from: sourceURL)
+        if ["http", "https"].contains(scheme) {
+            progress("Downloading video with yt-dlp...")
+            return try await downloadVideoGeneric(from: sourceURL)
         }
 
         throw VideoDownloadError.unsupportedURL
     }
 
-    private func isInstagramLink(_ url: URL) -> Bool {
-        guard let host = url.host?.lowercased() else { return false }
-        return host == "instagram.com"
-            || host == "www.instagram.com"
-            || host == "m.instagram.com"
-            || host == "instagr.am"
-    }
-
-    private func looksLikeDirectVideoURL(_ url: URL) -> Bool {
-        let ext = url.pathExtension.lowercased()
-        return ["mp4", "mov", "m4v", "webm"].contains(ext)
-    }
-
-    private func downloadDirectVideo(from sourceURL: URL) async throws -> DownloadedVideo {
-        let temporaryDirectoryURL = makeTemporaryDownloadDirectory()
-        let (downloadedTempURL, response) = try await URLSession.shared.download(from: sourceURL)
-
-        if let httpResponse = response as? HTTPURLResponse,
-           !(200...299).contains(httpResponse.statusCode) {
-            throw VideoDownloadError.httpError(statusCode: httpResponse.statusCode)
-        }
-
-        let ext = sourceURL.pathExtension.isEmpty ? "mp4" : sourceURL.pathExtension
-        let destinationURL = temporaryDirectoryURL
-            .appendingPathComponent("video")
-            .appendingPathExtension(ext)
-
-        try? FileManager.default.removeItem(at: destinationURL)
-        try FileManager.default.moveItem(at: downloadedTempURL, to: destinationURL)
-
-        return DownloadedVideo(
-            fileURL: destinationURL,
-            temporaryDirectoryURL: temporaryDirectoryURL
-        )
-    }
-
-    private func downloadInstagramVideo(from sourceURL: URL) async throws -> DownloadedVideo {
+    private func downloadVideoGeneric(from sourceURL: URL) async throws -> DownloadedVideo {
         guard let ytDlpURL = resolveYtDlpExecutableURL() else {
             throw VideoDownloadError.ytDlpNotFound
         }
@@ -110,6 +71,7 @@ final class VideoDownloadService {
                 "--no-playlist",
                 "--no-progress",
                 "--restrict-filenames",
+                "--write-info-json",
                 "-o", outputTemplate,
                 sourceURL.absoluteString
             ]
@@ -122,14 +84,38 @@ final class VideoDownloadService {
             throw VideoDownloadError.ytDlpFailed(details)
         }
 
-        guard let fileURL = try findDownloadedMedia(in: temporaryDirectoryURL) else {
+        let mediaURL = try findDownloadedMedia(in: temporaryDirectoryURL)
+        guard let fileURL = mediaURL else {
             throw VideoDownloadError.noDownloadedFile
+        }
+
+        var videoTitle: String? = nil
+        if let infoJsonURL = try findInfoJson(in: temporaryDirectoryURL) {
+            videoTitle = try parseVideoTitle(from: infoJsonURL)
         }
 
         return DownloadedVideo(
             fileURL: fileURL,
-            temporaryDirectoryURL: temporaryDirectoryURL
+            temporaryDirectoryURL: temporaryDirectoryURL,
+            videoTitle: videoTitle
         )
+    }
+
+    private func findInfoJson(in directoryURL: URL) throws -> URL? {
+        let candidates = try FileManager.default.contentsOfDirectory(
+            at: directoryURL,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        )
+        return candidates.first { $0.pathExtension.lowercased() == "json" }
+    }
+
+    private func parseVideoTitle(from url: URL) throws -> String? {
+        let data = try Data(contentsOf: url)
+        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            return json["title"] as? String
+        }
+        return nil
     }
 
     private func makeTemporaryDownloadDirectory() -> URL {

@@ -7,15 +7,23 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
-        .executable(
-            name: "IGTranscriber",
-            targets: ["IGTranscriber"]
-        )
+        .executable(name: "IGTranscriber", targets: ["IGTranscriberApp"]),
+        .executable(name: "transcribe-cli", targets: ["TranscribeCLI"])
     ],
     targets: [
+        .target(
+            name: "IGTranscriberCore",
+            path: "Sources/IGTranscriberCore"
+        ),
         .executableTarget(
-            name: "IGTranscriber",
-            path: "Sources"
+            name: "IGTranscriberApp",
+            dependencies: ["IGTranscriberCore"],
+            path: "Sources/IGTranscriberApp"
+        ),
+        .executableTarget(
+            name: "TranscribeCLI",
+            dependencies: ["IGTranscriberCore"],
+            path: "Sources/TranscribeCLI"
         )
     ]
 )

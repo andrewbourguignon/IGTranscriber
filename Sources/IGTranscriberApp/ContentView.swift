@@ -1,3 +1,4 @@
+import IGTranscriberCore
 import SwiftUI
 import AppKit
 import UniformTypeIdentifiers

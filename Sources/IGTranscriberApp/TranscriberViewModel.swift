@@ -1,3 +1,4 @@
+import IGTranscriberCore
 import Foundation
 import SwiftUI
 import AppKit
