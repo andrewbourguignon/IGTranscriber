@@ -1,4 +1,4 @@
-# Video Transcriber Skill (formerly IGTranscriber)
+# Transcriber Bot Skill (formerly IGTranscriber)
 
 ## Description
 High-fidelity video transcription engine for macOS. Uses Apple's native Speech Recognition for privacy and speed. Supports Instagram Reels, YouTube Shorts, TikToks, and direct video links.

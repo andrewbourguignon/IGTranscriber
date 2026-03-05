@@ -1,4 +1,4 @@
-import IGTranscriberCore
+import TranscriberBotCore
 import Foundation
 import SwiftUI
 import AppKit
@@ -8,7 +8,7 @@ import UniformTypeIdentifiers
 final class TranscriberViewModel: ObservableObject {
     enum InputMode: String, CaseIterable, Identifiable {
         case localFile
-        case instagramLink
+        case videoLink
 
         var id: String { rawValue }
 
@@ -16,8 +16,8 @@ final class TranscriberViewModel: ObservableObject {
             switch self {
             case .localFile:
                 return "Local File"
-            case .instagramLink:
-                return "Instagram Link"
+            case .videoLink:
+                return "Video Link"
             }
         }
     }
@@ -37,7 +37,7 @@ final class TranscriberViewModel: ObservableObject {
         switch inputMode {
         case .localFile:
             return selectedFileURL != nil
-        case .instagramLink:
+        case .videoLink:
             return !videoLinkText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
     }
@@ -61,7 +61,7 @@ final class TranscriberViewModel: ObservableObject {
             switch inputMode {
             case .localFile:
                 try await transcribeFromLocalFile()
-            case .instagramLink:
+            case .videoLink:
                 try await transcribeFromLink()
             }
         } catch {
@@ -101,8 +101,8 @@ final class TranscriberViewModel: ObservableObject {
             base = selectedFileURL?
                 .deletingPathExtension()
                 .lastPathComponent ?? "transcript"
-        case .instagramLink:
-            base = "instagram-transcript"
+        case .videoLink:
+            base = "video-transcript"
         }
         return "\(base)-transcript.txt"
     }
@@ -123,7 +123,7 @@ final class TranscriberViewModel: ObservableObject {
 
     private func transcribeFromLink() async throws {
         guard let sourceURL = normalizedURL(from: videoLinkText) else {
-            fail("Paste a valid Instagram URL (for example: https://www.instagram.com/reel/...).")
+            fail("Paste a valid video URL (e.g. Instagram, YouTube, TikTok).")
             return
         }
 

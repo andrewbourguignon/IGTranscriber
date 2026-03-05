@@ -1,8 +1,8 @@
-import IGTranscriberCore
+import TranscriberBotCore
 import SwiftUI
 
 @main
-struct IGTranscriberApp: App {
+struct TranscriberBotApp: App {
     @StateObject private var model = TranscriberViewModel()
 
     var body: some Scene {

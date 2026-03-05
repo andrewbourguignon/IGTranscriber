@@ -1,12 +1,12 @@
 import Foundation
-import IGTranscriberCore
+import TranscriberBotCore
 
 @main
-struct TranscribeCLI {
+struct TranscriberBotCLI {
     static func main() {
         let arguments = CommandLine.arguments
         guard arguments.count > 1 else {
-            print("Usage: transcribe-cli <video-url>")
+            print("Usage: transcriber-bot-cli <video-url>")
             exit(1)
         }
         

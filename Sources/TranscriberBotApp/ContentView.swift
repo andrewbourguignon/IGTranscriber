@@ -1,4 +1,4 @@
-import IGTranscriberCore
+import TranscriberBotCore
 import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
@@ -9,7 +9,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("IG Video Transcriber")
+            Text("Transcriber Bot")
                 .font(.title2)
                 .fontWeight(.semibold)
 
@@ -41,15 +41,15 @@ struct ContentView: View {
                         }
                     }
 
-                    Text("Pick any local Instagram video file (e.g. .mp4, .mov). The app does not require a fixed folder.")
+                    Text("Pick any local video file (e.g. .mp4, .mov). The app does not require a fixed folder.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
 
-                case .instagramLink:
-                    TextField("https://www.instagram.com/reel/...", text: $model.videoLinkText)
+                case .videoLink:
+                    TextField("https://...", text: $model.videoLinkText)
                         .textFieldStyle(.roundedBorder)
 
-                    Text("Paste an Instagram reel/post URL. The app downloads a temporary copy for transcription, then removes it. Private/login-only posts may fail.")
+                    Text("Paste a video URL (Instagram, YouTube, TikTok, etc). The app downloads a temporary copy for transcription, then removes it.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -105,7 +105,7 @@ struct ContentView: View {
             }
 
             HStack {
-                Text("Uses Apple Speech Recognition on macOS. Instagram link mode uses yt-dlp.")
+                Text("Uses Apple Speech Recognition on macOS. Video download uses yt-dlp.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()

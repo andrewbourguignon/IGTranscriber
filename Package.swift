@@ -2,28 +2,28 @@
 import PackageDescription
 
 let package = Package(
-    name: "IGTranscriber",
+    name: "TranscriberBot",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "IGTranscriber", targets: ["IGTranscriberApp"]),
-        .executable(name: "transcribe-cli", targets: ["TranscribeCLI"])
+        .executable(name: "TranscriberBot", targets: ["TranscriberBotApp"]),
+        .executable(name: "transcriber-bot-cli", targets: ["TranscriberBotCLI"])
     ],
     targets: [
         .target(
-            name: "IGTranscriberCore",
-            path: "Sources/IGTranscriberCore"
+            name: "TranscriberBotCore",
+            path: "Sources/TranscriberBotCore"
         ),
         .executableTarget(
-            name: "IGTranscriberApp",
-            dependencies: ["IGTranscriberCore"],
-            path: "Sources/IGTranscriberApp"
+            name: "TranscriberBotApp",
+            dependencies: ["TranscriberBotCore"],
+            path: "Sources/TranscriberBotApp"
         ),
         .executableTarget(
-            name: "TranscribeCLI",
-            dependencies: ["IGTranscriberCore"],
-            path: "Sources/TranscribeCLI"
+            name: "TranscriberBotCLI",
+            dependencies: ["TranscriberBotCore"],
+            path: "Sources/TranscriberBotCLI"
         )
     ]
 )
